@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#050b1b">
+<title>Strategy — поиск</title>
+<style>
+:root{color-scheme:dark;--bg:#050a18;--glass:rgba(17,30,58,.52);--line:rgba(166,197,255,.16);--muted:#8494b5;--text:#edf4ff;--blue:#78aaff}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--text);background:radial-gradient(ellipse at 50% 35%,#14264a 0%,#0a142b 35%,#050a18 76%);overflow-x:hidden}
+body:before,body:after{content:"";position:fixed;width:420px;height:420px;border-radius:50%;filter:blur(110px);opacity:.18;pointer-events:none}body:before{background:#2464ce;top:-210px;left:-150px}body:after{background:#4935a8;right:-190px;bottom:-240px}
+header{height:92px;padding:0 clamp(22px,5vw,76px);display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2}
+.brand{display:flex;align-items:center;gap:12px;font-size:19px;font-weight:750;letter-spacing:.16em}.brand-mark{width:35px;height:35px;border:1px solid rgba(153,190,255,.55);border-radius:11px;display:grid;place-items:center;background:linear-gradient(145deg,rgba(120,170,255,.28),rgba(255,255,255,.035));box-shadow:0 5px 25px #315d9a33,inset 0 1px #ffffff30}.brand-mark svg{width:20px}
+.profile-wrap{position:relative}.profile{display:flex;align-items:center;gap:11px;padding:8px 13px 8px 8px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.045);color:var(--text);cursor:pointer;backdrop-filter:blur(18px);transition:.2s}.profile:hover{background:rgba(255,255,255,.09);border-color:#9bbfff55}.avatar{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(145deg,#739fe9,#354d82);font-size:13px;font-weight:800}.profile span{font-size:13px;color:#dbe7ff}.chevron{color:#91a5c8;font-size:12px;margin-left:5px}
+.menu{display:none;position:absolute;right:0;top:58px;width:190px;padding:8px;border:1px solid var(--line);border-radius:15px;background:rgba(10,19,39,.92);backdrop-filter:blur(24px);box-shadow:0 18px 50px #0008}.menu.open{display:block}.menu button{display:block;width:100%;text-align:left;padding:11px;border:0;border-radius:9px;color:#dce8ff;background:transparent;cursor:pointer}.menu button:hover{background:#ffffff12}
+main{min-height:calc(100vh - 92px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 22px 13vh;position:relative;z-index:1}.eyebrow{display:flex;align-items:center;gap:9px;color:#8ea7d1;font-size:11px;letter-spacing:.22em;text-transform:uppercase;margin-bottom:25px}.eyebrow:before{content:"";width:22px;height:1px;background:#668cc9}.eyebrow:after{content:"";width:22px;height:1px;background:#668cc9}
+h1{font-size:clamp(38px,6vw,66px);line-height:1.06;letter-spacing:-.055em;text-align:center;margin:0;font-weight:650}.gradient{background:linear-gradient(100deg,#fff 5%,#b7d2ff 48%,#779ee4 100%);-webkit-background-clip:text;background-clip:text;color:transparent}.subtitle{color:#91a2c2;text-align:center;font-size:15px;margin:19px 0 37px;line-height:1.6}
+.search-shell{width:min(680px,100%);padding:8px;border:1px solid rgba(162,195,255,.23);border-radius:22px;background:linear-gradient(135deg,rgba(255,255,255,.105),rgba(255,255,255,.025));box-shadow:0 25px 90px #0006,inset 0 1px #ffffff20;backdrop-filter:blur(26px);transition:.25s}.search-shell:focus-within{border-color:#83adf077;box-shadow:0 25px 90px #0007,0 0 0 4px #6e9fe51a,inset 0 1px #ffffff25}.search-row{display:flex;align-items:center;gap:13px;padding:7px 8px 7px 15px}.search-icon{width:21px;height:21px;color:#8ca9d8;flex:none}.search-row input{min-width:0;flex:1;background:transparent;border:0;outline:0;color:#f2f6ff;font:inherit;font-size:15px}.search-row input::placeholder{color:#7183a6}.search-row button{border:0;border-radius:14px;padding:13px 19px;background:linear-gradient(135deg,#8ab6ff,#527fce);color:#071329;font-weight:750;cursor:pointer;box-shadow:0 5px 22px #477bc955;transition:.2s}.search-row button:hover{transform:translateY(-1px);filter:brightness(1.08)}.search-hint{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 4px;color:#6f82a7;font-size:11px}.key{border:1px solid #ffffff20;border-radius:5px;padding:2px 6px;color:#9aacca}
+.suggestions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:22px}.suggestions button{border:1px solid rgba(155,186,239,.14);border-radius:30px;padding:9px 14px;background:rgba(255,255,255,.035);color:#9aaccb;font-size:12px;cursor:pointer;transition:.2s}.suggestions button:hover{color:#e6efff;border-color:#8ab4f455;background:#ffffff0d}
+.result{width:min(680px,100%);margin-top:20px;padding:17px 20px;border:1px solid var(--line);border-radius:16px;background:rgba(12,24,47,.72);color:#c8d8f5;display:none;backdrop-filter:blur(20px)}.result.show{display:block}.result strong{color:#fff}.result p{margin:7px 0 0;color:#8ea2c5;font-size:13px}
+footer{position:absolute;bottom:25px;color:#536585;font-size:11px;letter-spacing:.08em}
+@media(max-width:560px){header{height:76px;padding:0 18px}.brand{font-size:16px}.profile{padding:6px}.profile span,.chevron{display:none}main{min-height:calc(100vh - 76px);padding-bottom:15vh}.subtitle{font-size:13px;margin:15px 0 29px}.search-row{gap:9px;padding-left:10px}.search-row button{padding:12px 14px}.search-hint{font-size:10px}footer{bottom:15px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 18V6l7 8 7-8v12" stroke="#dceaff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>STRATEGY</div>
+  <div class="profile-wrap">
+    <button class="profile" id="profileBtn" aria-expanded="false"><div class="avatar">S</div><span>Мой профиль</span><span class="chevron">⌄</span></button>
+    <div class="menu" id="profileMenu"><button>Мой профиль</button><button>Настройки</button><button>Выйти</button></div>
+  </div>
+</header>
+<main>
+  <div class="eyebrow">Ваше пространство идей</div>
+  <h1>Найдите свой<br><span class="gradient">следующий шаг.</span></h1>
+  <p class="subtitle">Одна строка — чтобы найти нужное, открыть новое<br>и двигаться дальше.</p>
+  <form class="search-shell" id="searchForm">
+    <div class="search-row">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.7"/><path d="m16 16 4.2 4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <input id="searchInput" type="search" placeholder="Что будем искать сегодня?" autocomplete="off" aria-label="Поиск">
+      <button type="submit">Искать <span aria-hidden="true">↗</span></button>
+    </div>
+    <div class="search-hint"><span>Начните вводить запрос</span><span><span class="key">Enter</span> для поиска</span></div>
+  </form>
+  <div class="suggestions">
+    <button type="button">✦ Идеи и вдохновение</button>
+    <button type="button">⌘ Инструменты</button>
+    <button type="button">↗ Исследования</button>
+  </div>
+  <div class="result" id="result" aria-live="polite"></div>
+  <footer>STRATEGY <span style="padding:0 8px;color:#33496e">•</span> THINK CLEAR. MOVE FORWARD.</footer>
+</main>
+<script>
+const profileBtn=document.getElementById('profileBtn');
+const profileMenu=document.getElementById('profileMenu');
+profileBtn.addEventListener('click',()=>{const open=profileMenu.classList.toggle('open');profileBtn.setAttribute('aria-expanded',String(open))});
+document.addEventListener('click',e=>{if(!e.target.closest('.profile-wrap')){profileMenu.classList.remove('open');profileBtn.setAttribute('aria-expanded','false')}});
+const input=document.getElementById('searchInput'),result=document.getElementById('result');
+function search(){const q=input.value.trim();if(!q){input.focus();return}result.classList.add('show');result.innerHTML='<strong>Поиск: “'+q.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))+'”</strong><p>Интерфейс готов — подключите источник данных или поисковый API, чтобы показывать реальные результаты.</p>'}
+document.getElementById('searchForm').addEventListener('submit',e=>{e.preventDefault();search()});
+document.querySelectorAll('.suggestions button').forEach(b=>b.addEventListener('click',()=>{input.value=b.textContent.replace(/^[✦⌘↗]\s*/,'');search()}));
+</script>
+</body>
+</html>
